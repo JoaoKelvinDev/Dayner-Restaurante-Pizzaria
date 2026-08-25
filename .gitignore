@@ -1,0 +1,65 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+bundle.html
+package-lock.json
+.parcel-cache
+.vite
+.turbo
+.cache
+coverage
+
+# Arquivos de ambiente e segredos
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+
+# Arquivos temporários e de sistema
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.swp
+Thumbs.db
+
+# Relatórios e arquivos de depuração
+*.tsbuildinfo
+*.pid
+*.pid.lock
+report/
+reports/
+
+# Assets padrão não utilizados
+src/assets/react.svg
+src/assets/vite.svg
+src/assets/hero.png
+public/favicon.svg
+public/icons.svg
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
