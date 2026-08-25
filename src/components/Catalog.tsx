@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { PIZZAS_TRADICIONAIS, PIZZAS_ESPECIAIS, HAMBURGUERES, PRODUTOS_EXTRAS, formatBRL } from '@/data/menu';
@@ -14,13 +14,19 @@ interface Props {
 }
 
 const MODO_INFO: Record<ModoPedido, { label: string; icon: React.ReactNode }> = {
-  comer_la: { label: 'Comer lá', icon: <UtensilsCrossed className="w-3.5 h-3.5" /> },
+  comer_la: { label: 'Comer no local', icon: <UtensilsCrossed className="w-3.5 h-3.5" /> },
   retirada: { label: 'Retirada no balcão', icon: <ShoppingBag className="w-3.5 h-3.5" /> },
   delivery: { label: 'Delivery', icon: <Bike className="w-3.5 h-3.5" /> },
 };
 
 export default function Catalog({ modo, onTrocarModo, onSelecionarPizza, onSelecionarBurguer, onAdicionarExtra }: Props) {
   const [tab, setTab] = useState('tradicionais');
+
+  useEffect(() => {
+    if (modo === 'delivery' && tab === 'salgados') {
+      setTab('tradicionais');
+    }
+  }, [modo, tab]);
 
   return (
     <div className="pb-28">
@@ -46,7 +52,7 @@ export default function Catalog({ modo, onTrocarModo, onSelecionarPizza, onSelec
         </div>
 
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="w-full grid grid-cols-4 bg-transparent px-4 pb-2 h-auto gap-2">
+          <TabsList className={`w-full grid ${modo === 'delivery' ? 'grid-cols-3' : 'grid-cols-4'} bg-transparent px-4 pb-2 h-auto gap-2`}>
             <TabsTrigger
               value="tradicionais"
               className="data-[state=active]:bg-gold-gradient data-[state=active]:text-[#0D0D0D] data-[state=active]:font-semibold rounded-full border border-border py-2 text-xs"
@@ -65,12 +71,14 @@ export default function Catalog({ modo, onTrocarModo, onSelecionarPizza, onSelec
             >
               Hambúrgueres
             </TabsTrigger>
-            <TabsTrigger
-              value="salgados"
-              className="data-[state=active]:bg-gold-gradient data-[state=active]:text-[#0D0D0D] data-[state=active]:font-semibold rounded-full border border-border py-2 text-xs"
-            >
-              Salgados e Bolos
-            </TabsTrigger>
+            {modo !== 'delivery' && (
+              <TabsTrigger
+                value="salgados"
+                className="data-[state=active]:bg-gold-gradient data-[state=active]:text-[#0D0D0D] data-[state=active]:font-semibold rounded-full border border-border py-2 text-xs"
+              >
+                Salgados, Bolos, Refrigerantes &amp; Sucos
+              </TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
       </header>

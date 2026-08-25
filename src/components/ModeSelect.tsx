@@ -8,7 +8,7 @@ interface Props {
 const OPCOES: { id: ModoPedido; titulo: string; desc: string; icon: React.ReactNode }[] = [
   {
     id: 'comer_la',
-    titulo: 'Comer lá',
+    titulo: 'Comer no Local',
     desc: 'Peça agora e retire na sua mesa',
     icon: <UtensilsCrossed className="w-7 h-7" />,
   },
