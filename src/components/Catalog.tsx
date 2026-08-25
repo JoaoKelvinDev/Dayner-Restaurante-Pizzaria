@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { PIZZAS_TRADICIONAIS, PIZZAS_ESPECIAIS, HAMBURGUERES, PRODUTOS_EXTRAS, formatBRL } from '@/data/menu';
 import type { PizzaSabor, Burguer, ModoPedido, ItemCarrinho } from '@/types';
