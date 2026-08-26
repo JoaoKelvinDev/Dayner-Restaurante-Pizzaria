@@ -22,11 +22,8 @@ import type {
 
 import {
   QrCode,
-  Copy,
-  Check,
   Banknote,
   CreditCard,
-  Loader2,
 } from 'lucide-react';
 
 interface Props {
@@ -71,15 +68,6 @@ export default function CheckoutSheet({
 
   const [trocoPara, setTrocoPara] =
     useState('');
-
-  const [copiado, setCopiado] =
-    useState(false);
-
-  const [gerandoCobranca, setGerandoCobranca] =
-    useState(false);
-
-  const [confirmandoPagamento, setConfirmandoPagamento] =
-    useState(false);
 
   /*
    * ==========================================
@@ -126,21 +114,6 @@ export default function CheckoutSheet({
         bairro.trim().length > 2
       )
     );
-
-  /*
-   * ==========================================
-   * PIX — SIMULAÇÃO
-   * ==========================================
-   *
-   * Isso NÃO é um código Pix real.
-   * Posteriormente será substituído pela
-   * integração com o gateway de pagamento.
-   */
-
-  const pixCopiaECola =
-    '00020126580014BR.GOV.BCB.PIX0136dayner-lanches-exemplo-nao-real5204000053039865406' +
-    total.toFixed(2).replace('.', '') +
-    '5802BR5913Dayner Lanches6009Teresina62070503***6304ABCD';
 
   /*
    * ==========================================
@@ -256,20 +229,7 @@ export default function CheckoutSheet({
      * Abre a tela de pagamento.
      */
     if (forma === 'pix') {
-      setGerandoCobranca(true);
-
       setEtapa('pix');
-
-      /*
-       * Simulação da criação da cobrança.
-       *
-       * Futuramente:
-       * API → gateway → QR Code real.
-       */
-      setTimeout(() => {
-        setGerandoCobranca(false);
-      }, 900);
-
       return;
     }
 
@@ -284,38 +244,19 @@ export default function CheckoutSheet({
 
   /*
    * ==========================================
-   * CONFIRMAÇÃO PIX
+   * PEDIDO PIX PENDENTE
    * ==========================================
    */
 
-  const simularConfirmacaoPix = () => {
-    setConfirmandoPagamento(true);
+  const registrarPixPendente = () => {
+    const dadosCheckout = construirDados('pix');
 
     /*
-     * Simulação de webhook.
-     *
-     * Em produção:
-     *
-     * Gateway
-     *    ↓
-     * Webhook
-     *    ↓
-     * Backend
-     *    ↓
-     * statusPagamento = pago
+     * Sem uma integração de pagamento não há como confirmar Pix com segurança.
+     * O pedido fica fora da fila até o futuro webhook alterar o pagamento para pago.
      */
-
-    setTimeout(() => {
-      const dadosCheckout =
-        construirDados('pix');
-
-      onConfirmar(
-        dadosCheckout,
-        true
-      );
-
-      resetAndClose();
-    }, 1100);
+    onConfirmar(dadosCheckout, false);
+    resetAndClose();
   };
 
   /*
@@ -342,11 +283,6 @@ export default function CheckoutSheet({
 
       setTrocoPara('');
 
-      setCopiado(false);
-
-      setGerandoCobranca(false);
-
-      setConfirmandoPagamento(false);
     }, 300);
   };
 
@@ -819,90 +755,16 @@ export default function CheckoutSheet({
         {etapa === 'pix' && (
           <div className="p-5 flex flex-col items-center text-center">
 
-            {gerandoCobranca ? (
-              <div className="py-14 flex flex-col items-center gap-3 text-muted-foreground">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
-
-                <p className="text-sm">
-                  Gerando cobrança Pix...
-                </p>
-              </div>
-            ) : (
-              <>
-                <div
-                  className="
-                    w-52
-                    h-52
-                    rounded-xl
-                    bg-white
-                    flex
-                    items-center
-                    justify-center
-                    p-3
-                    mb-4
-                  "
-                >
-                  <PixQrPlaceholder />
-                </div>
-
+            <>
                 <p className="font-display text-2xl text-primary mb-1">
                   {formatBRL(total)}
                 </p>
 
                 <p className="text-xs text-muted-foreground mb-4">
-                  Escaneie o QR code no app do seu banco
-                  ou copie o código abaixo.
+                  O Pix será liberado com um QR Code real na próxima etapa.
+                  Por enquanto, você pode registrar o pedido para validar o
+                  estado de pagamento pendente.
                 </p>
-
-                {/* COPIAR PIX */}
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard?.writeText(
-                      pixCopiaECola
-                    );
-
-                    setCopiado(true);
-
-                    setTimeout(
-                      () => setCopiado(false),
-                      1800
-                    );
-                  }}
-                  className="
-                    w-full
-                    flex
-                    items-center
-                    gap-2
-                    rounded-lg
-                    border
-                    border-border
-                    bg-secondary/40
-                    px-3
-                    py-2.5
-                    mb-5
-                  "
-                >
-                  <span
-                    className="
-                      text-[11px]
-                      text-muted-foreground
-                      truncate
-                      flex-1
-                      text-left
-                      font-mono
-                    "
-                  >
-                    {pixCopiaECola.slice(0, 34)}...
-                  </span>
-
-                  {copiado ? (
-                    <Check className="w-4 h-4 text-primary shrink-0" />
-                  ) : (
-                    <Copy className="w-4 h-4 text-muted-foreground shrink-0" />
-                  )}
-                </button>
 
                 <p className="text-[11px] text-muted-foreground mb-4">
                   O pedido só entra na fila de preparo
@@ -910,7 +772,6 @@ export default function CheckoutSheet({
                 </p>
 
                 <Button
-                  disabled={confirmandoPagamento}
                   className="
                     w-full
                     bg-gold-gradient
@@ -918,122 +779,19 @@ export default function CheckoutSheet({
                     font-semibold
                     h-12
                   "
-                  onClick={simularConfirmacaoPix}
+                  onClick={registrarPixPendente}
                 >
-                  {confirmandoPagamento ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Confirmando pagamento...
-                    </span>
-                  ) : (
-                    'Simular confirmação de pagamento'
-                  )}
+                  Registrar pedido pendente
                 </Button>
 
                 <p className="text-[10px] text-muted-foreground mt-2">
-                  Demonstração — em produção essa
-                  confirmação será realizada automaticamente
-                  pelo provedor de pagamento.
+                  A confirmação automática será adicionada com o provedor de
+                  pagamento; nenhum Pix é gerado nesta versão.
                 </p>
-              </>
-            )}
+            </>
           </div>
         )}
       </SheetContent>
     </Sheet>
-  );
-}
-
-
-/*
- * ==========================================
- * QR CODE — PLACEHOLDER
- * ==========================================
- *
- * É apenas visual.
- * Não representa um QR Code Pix real.
- */
-
-function PixQrPlaceholder() {
-  return (
-    <svg
-      viewBox="0 0 100 100"
-      className="w-full h-full"
-    >
-      <rect
-        width="100"
-        height="100"
-        fill="white"
-      />
-
-      {Array.from({ length: 12 }).map(
-        (_, row) =>
-          Array.from({ length: 12 }).map(
-            (_, col) => {
-              const seed =
-                (row * 12 + col * 7) % 5;
-
-              const on =
-                seed === 0 || seed === 3;
-
-              const isFinder =
-                (row < 3 && col < 3) ||
-                (row < 3 && col > 8) ||
-                (row > 8 && col < 3);
-
-              if (isFinder) {
-                return null;
-              }
-
-              return on ? (
-                <rect
-                  key={`${row}-${col}`}
-                  x={col * 8.3}
-                  y={row * 8.3}
-                  width="7.5"
-                  height="7.5"
-                  fill="#0D0D0D"
-                />
-              ) : null;
-            }
-          )
-      )}
-
-      {[0, 9].map((cx) =>
-        [0, 9].map((cy) => {
-          if (cx === 9 && cy === 9) {
-            return null;
-          }
-
-          return (
-            <g key={`${cx}-${cy}`}>
-              <rect
-                x={cx * 8.3}
-                y={cy * 8.3}
-                width="24.9"
-                height="24.9"
-                fill="#0D0D0D"
-              />
-
-              <rect
-                x={cx * 8.3 + 4}
-                y={cy * 8.3 + 4}
-                width="16.9"
-                height="16.9"
-                fill="white"
-              />
-
-              <rect
-                x={cx * 8.3 + 8}
-                y={cy * 8.3 + 8}
-                width="8.9"
-                height="8.9"
-                fill="#0D0D0D"
-              />
-            </g>
-          );
-        })
-      )}
-    </svg>
   );
 }

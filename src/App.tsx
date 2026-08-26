@@ -8,6 +8,7 @@ import CartBar from '@/components/CartBar';
 import CartSheet from '@/components/CartSheet';
 import CheckoutSheet from '@/components/CheckoutSheet';
 import OrderTracking from '@/components/OrderTracking';
+import { carregarPedidoAtivo, limparPedidoAtivo, salvarPedidoAtivo } from '@/lib/orders';
 
 import type {
   ModoPedido,
@@ -34,7 +35,7 @@ function App() {
   const [checkoutAberto, setCheckoutAberto] = useState(false);
 
   const [pedidoFinalizado, setPedidoFinalizado] =
-    useState<Pedido | null>(null);
+    useState<Pedido | null>(() => carregarPedidoAtivo());
 
   const adicionarItem = (item: ItemCarrinho) => {
     setItens((prev) => [...prev, item]);
@@ -137,6 +138,7 @@ function App() {
       createdAt: Date.now(),
     };
 
+    salvarPedidoAtivo(pedido);
     setPedidoFinalizado(pedido);
 
     setItens([]);
@@ -146,6 +148,7 @@ function App() {
   };
 
   const novoPedido = () => {
+    limparPedidoAtivo();
     setPedidoFinalizado(null);
     setModo(null);
 

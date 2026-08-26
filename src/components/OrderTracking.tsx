@@ -74,11 +74,6 @@ export default function OrderTracking({
 
   const idxAtual = fluxo.indexOf(statusAtual);
 
-  const total = pedido.itens.reduce(
-    (s, i) => s + i.precoUnitario * i.quantidade,
-    0
-  );
-
   /**
    * Somente Pix pendente deve bloquear o fluxo
    * aguardando confirmação de pagamento.
@@ -231,7 +226,7 @@ export default function OrderTracking({
             </span>
 
             <span className="font-display text-lg text-primary">
-              {formatBRL(total)}
+              {formatBRL(pedido.valorTotal)}
             </span>
           </div>
 
