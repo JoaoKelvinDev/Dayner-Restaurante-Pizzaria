@@ -67,4 +67,4 @@ public/icons.svg
 .vercel
 .env*
 .supabase
-.migrationssupabase/migrations/202608270001_create_orders.sql
+
