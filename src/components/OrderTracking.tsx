@@ -108,7 +108,7 @@ export default function OrderTracking({
           </p>
 
           <p className="font-display text-2xl tracking-wide text-gold-gradient">
-            #{pedido.id}
+            #{pedido.numeroPedido}
           </p>
         </div>
 

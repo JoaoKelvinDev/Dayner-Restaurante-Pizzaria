@@ -35,7 +35,7 @@ interface Props {
   onConfirmar: (
     dados: DadosCheckout,
     pagamentoJaConfirmado: boolean
-  ) => void;
+  ) => Promise<void>;
 }
 
 type Etapa =
@@ -68,6 +68,9 @@ export default function CheckoutSheet({
 
   const [trocoPara, setTrocoPara] =
     useState('');
+
+  const [enviandoPedido, setEnviandoPedido] = useState(false);
+  const [erroPedido, setErroPedido] = useState<string | null>(null);
 
   /*
    * ==========================================
@@ -196,20 +199,12 @@ export default function CheckoutSheet({
    * O pedido é criado imediatamente.
    */
 
-  const confirmarPagamentoLocal = () => {
+  const confirmarPagamentoLocal = async () => {
     if (!pagamento) {
       return;
     }
 
-    const dadosCheckout =
-      construirDados(pagamento);
-
-    onConfirmar(
-      dadosCheckout,
-      false
-    );
-
-    resetAndClose();
+    await enviarPedido(construirDados(pagamento), false);
   };
 
   /*
@@ -248,15 +243,29 @@ export default function CheckoutSheet({
    * ==========================================
    */
 
-  const registrarPixPendente = () => {
-    const dadosCheckout = construirDados('pix');
+  const registrarPixPendente = async () => {
+    await enviarPedido(construirDados('pix'), false);
+  };
+
+  const enviarPedido = async (
+    dadosCheckout: DadosCheckout,
+    pagamentoJaConfirmado: boolean
+  ) => {
+    setEnviandoPedido(true);
+    setErroPedido(null);
 
     /*
      * Sem uma integração de pagamento não há como confirmar Pix com segurança.
      * O pedido fica fora da fila até o futuro webhook alterar o pagamento para pago.
      */
-    onConfirmar(dadosCheckout, false);
-    resetAndClose();
+    try {
+      await onConfirmar(dadosCheckout, pagamentoJaConfirmado);
+      resetAndClose();
+    } catch {
+      setErroPedido('Não foi possível enviar o pedido. Verifique a conexão e tente novamente.');
+    } finally {
+      setEnviandoPedido(false);
+    }
   };
 
   /*
@@ -282,6 +291,8 @@ export default function CheckoutSheet({
       setPagamento(null);
 
       setTrocoPara('');
+      setErroPedido(null);
+      setEnviandoPedido(false);
 
     }, 300);
   };
@@ -714,6 +725,7 @@ export default function CheckoutSheet({
 
             {pagamento === 'cartao' && (
               <Button
+                disabled={enviandoPedido}
                 className="
                   w-full
                   bg-gold-gradient
@@ -724,7 +736,7 @@ export default function CheckoutSheet({
                 "
                 onClick={confirmarPagamentoLocal}
               >
-                Confirmar pedido
+                {enviandoPedido ? 'Enviando pedido...' : 'Confirmar pedido'}
               </Button>
             )}
 
@@ -732,6 +744,7 @@ export default function CheckoutSheet({
 
             {pagamento === 'dinheiro' && (
               <Button
+                disabled={enviandoPedido}
                 className="
                   w-full
                   bg-gold-gradient
@@ -742,8 +755,14 @@ export default function CheckoutSheet({
                 "
                 onClick={confirmarPagamentoLocal}
               >
-                Confirmar pedido
+                {enviandoPedido ? 'Enviando pedido...' : 'Confirmar pedido'}
               </Button>
+            )}
+
+            {erroPedido && (
+              <p className="text-xs text-destructive text-center pt-2">
+                {erroPedido}
+              </p>
             )}
           </div>
         )}
@@ -772,6 +791,7 @@ export default function CheckoutSheet({
                 </p>
 
                 <Button
+                  disabled={enviandoPedido}
                   className="
                     w-full
                     bg-gold-gradient
@@ -781,13 +801,19 @@ export default function CheckoutSheet({
                   "
                   onClick={registrarPixPendente}
                 >
-                  Registrar pedido pendente
+                  {enviandoPedido ? 'Enviando pedido...' : 'Registrar pedido pendente'}
                 </Button>
 
                 <p className="text-[10px] text-muted-foreground mt-2">
                   A confirmação automática será adicionada com o provedor de
                   pagamento; nenhum Pix é gerado nesta versão.
                 </p>
+
+                {erroPedido && (
+                  <p className="text-xs text-destructive mt-3">
+                    {erroPedido}
+                  </p>
+                )}
             </>
           </div>
         )}

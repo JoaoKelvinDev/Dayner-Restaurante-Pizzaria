@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import ModeSelect from '@/components/ModeSelect';
 import Catalog from '@/components/Catalog';
@@ -8,7 +8,7 @@ import CartBar from '@/components/CartBar';
 import CartSheet from '@/components/CartSheet';
 import CheckoutSheet from '@/components/CheckoutSheet';
 import OrderTracking from '@/components/OrderTracking';
-import { carregarPedidoAtivo, limparPedidoAtivo, salvarPedidoAtivo } from '@/lib/orders';
+import { carregarPedidoAtivo, criarPedido, limparPedidoAtivo } from '@/lib/orders';
 
 import type {
   ModoPedido,
@@ -34,8 +34,14 @@ function App() {
 
   const [checkoutAberto, setCheckoutAberto] = useState(false);
 
-  const [pedidoFinalizado, setPedidoFinalizado] =
-    useState<Pedido | null>(() => carregarPedidoAtivo());
+  const [pedidoFinalizado, setPedidoFinalizado] = useState<Pedido | null>(null);
+  const [carregandoPedido, setCarregandoPedido] = useState(true);
+
+  useEffect(() => {
+    carregarPedidoAtivo()
+      .then(setPedidoFinalizado)
+      .finally(() => setCarregandoPedido(false));
+  }, []);
 
   const adicionarItem = (item: ItemCarrinho) => {
     setItens((prev) => [...prev, item]);
@@ -68,9 +74,9 @@ function App() {
   const confirmarPedido = (
     dados: DadosCheckout,
     pagamentoJaConfirmado: boolean
-  ) => {
+  ): Promise<void> => {
     if (!modo || itens.length === 0) {
-      return;
+      return Promise.resolve();
     }
 
     const subtotal = itens.reduce(
@@ -90,9 +96,9 @@ function App() {
     const valorTotal = subtotal + taxaEntrega;
 
     const pedido: Pedido = {
-      id: Math.floor(
-        1000 + Math.random() * 9000
-      ).toString(),
+      id: '',
+      numeroPedido: 0,
+      tokenAcompanhamento: '',
 
       modo,
 
@@ -138,13 +144,12 @@ function App() {
       createdAt: Date.now(),
     };
 
-    salvarPedidoAtivo(pedido);
-    setPedidoFinalizado(pedido);
-
-    setItens([]);
-
-    setCartAberto(false);
-    setCheckoutAberto(false);
+    return criarPedido(pedido).then((pedidoCriado) => {
+      setPedidoFinalizado(pedidoCriado);
+      setItens([]);
+      setCartAberto(false);
+      setCheckoutAberto(false);
+    });
   };
 
   const novoPedido = () => {
@@ -162,6 +167,10 @@ function App() {
    * Quando existe um pedido finalizado,
    * mostramos a tela de acompanhamento.
    */
+  if (carregandoPedido) {
+    return <div className="min-h-[100dvh] bg-background" />;
+  }
+
   if (pedidoFinalizado) {
     return (
       <OrderTracking

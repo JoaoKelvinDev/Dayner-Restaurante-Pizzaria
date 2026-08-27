@@ -14,6 +14,7 @@ dist-ssr
 bundle.html
 package-lock.json
 .parcel-cache
+.npm-cache
 .vite
 .turbo
 .cache
@@ -65,3 +66,5 @@ public/icons.svg
 *.sw?
 .vercel
 .env*
+.supabase
+.migrationssupabase/migrations/202608270001_create_orders.sql

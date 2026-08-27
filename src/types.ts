@@ -232,6 +232,11 @@ export interface DadosCheckout {
 export interface Pedido {
   id: string;
 
+  numeroPedido: number;
+
+  /** Chave privada do cliente para consultar somente o próprio pedido. */
+  tokenAcompanhamento: string;
+
   modo: ModoPedido;
 
   itens: ItemCarrinho[];
