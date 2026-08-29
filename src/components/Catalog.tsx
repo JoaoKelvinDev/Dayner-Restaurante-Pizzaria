@@ -74,9 +74,9 @@ export default function Catalog({ modo, onTrocarModo, onSelecionarPizza, onSelec
             {modo !== 'delivery' && (
               <TabsTrigger
                 value="salgados"
-                className="data-[state=active]:bg-gold-gradient data-[state=active]:text-[#0D0D0D] data-[state=active]:font-semibold rounded-full border border-border py-2 text-xs"
+                className="data-[state=active]:bg-gold-gradient data-[state=active]:text-[#0D0D0D] data-[state=active]:font-semibold rounded-full border border-border px-1 py-2 text-[8px] leading-[1.1] sm:text-[9px] whitespace-normal break-words"
               >
-                Salgados, Bolos, Refrigerantes &amp; Sucos
+                Salgados, Bolos &amp; Bebidas
               </TabsTrigger>
             )}
           </TabsList>
