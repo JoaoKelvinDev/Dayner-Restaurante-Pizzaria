@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Megaphone } from 'lucide-react';
 import { formatBRL } from '@/data/menu';
 import type { Pedido, StatusPedido } from '@/types';
 
@@ -10,6 +11,7 @@ interface Props {
   onAvancarStatus: (id: string, status: StatusPedido) => Promise<void>;
   onMarcarPago: (id: string) => Promise<void>;
   onDefinirTempo: (id: string, minutos: number) => Promise<void>;
+  onDefinirMensagem: (id: string, mensagem: string | null) => Promise<void>;
 }
 
 const FLUXO_STATUS: StatusPedido[] = [
@@ -34,6 +36,24 @@ const LABEL_MODO: Record<Pedido['modo'], string> = {
   delivery: 'Delivery',
 };
 
+const OPCOES_AVISO = [
+  {
+    id: 'baixo_fluxo',
+    label: 'Baixo fluxo',
+    mensagem: 'Baixo fluxo hoje — seu pedido pode levar alguns minutos a mais.',
+  },
+  {
+    id: 'medio_fluxo',
+    label: 'Médio fluxo',
+    mensagem: 'Fluxo médio hoje — seu pedido pode levar mais alguns minutos.',
+  },
+  {
+    id: 'alto_fluxo',
+    label: 'Alto fluxo',
+    mensagem: 'Alto fluxo hoje — seu pedido pode levar mais tempo que o normal.',
+  },
+] as const;
+
 const LABEL_PAGAMENTO: Record<Pedido['dados']['formaPagamento'], string> = {
   pix: 'Pix',
   cartao: 'Cartão',
@@ -45,6 +65,7 @@ export default function OrderCard({
   onAvancarStatus,
   onMarcarPago,
   onDefinirTempo,
+  onDefinirMensagem,
 }: Props) {
   const [processando, setProcessando] = useState(false);
   const [tempo, setTempo] = useState('');
@@ -92,6 +113,19 @@ export default function OrderCard({
     } finally {
       setProcessando(false);
     }
+  };
+
+  const salvarMensagem = async (texto: string | null) => {
+    setProcessando(true);
+    try {
+      await onDefinirMensagem(pedido.id, texto);
+    } finally {
+      setProcessando(false);
+    }
+  };
+
+  const limparMensagem = async () => {
+    await salvarMensagem(null);
   };
 
   return (
@@ -177,7 +211,7 @@ export default function OrderCard({
             size="sm"
             disabled={processando}
             onClick={avancar}
-            className="bg-gold-gradient text-primary-foreground font-semibold"
+            className="bg-gold-gradient text-primary-foreground font-semibold text-[10px] leading-[1.1] px-2.5 py-2 whitespace-normal sm:text-xs"
           >
             Marcar como {LABEL_STATUS[proximoStatus]}
           </Button>
@@ -219,6 +253,50 @@ export default function OrderCard({
           <span className="text-xs text-muted-foreground">
             ~{pedido.tempoEstimadoMinutos} min
           </span>
+        )}
+      </div>
+
+      {/* AVISO PRO CLIENTE */}
+      <div className="border-t border-border pt-3 space-y-2">
+        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <Megaphone className="h-3 w-3" />
+          Aviso pro cliente
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          {OPCOES_AVISO.map((opcao) => {
+            const selecionado = pedido.mensagemStatus === opcao.mensagem;
+
+            return (
+              <button
+                key={opcao.id}
+                type="button"
+                disabled={processando}
+                onClick={() => salvarMensagem(selecionado ? null : opcao.mensagem)}
+                className={[
+                  'rounded-lg border px-2 py-2 text-[10px] font-medium transition-colors',
+                  selecionado
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border bg-secondary/40 text-muted-foreground hover:border-primary/50',
+                ].join(' ')}
+              >
+                {opcao.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {pedido.mensagemStatus && (
+          <div className="flex items-center justify-between gap-2 rounded-lg bg-primary/10 border border-primary/30 px-3 py-2">
+            <p className="text-xs text-primary">{pedido.mensagemStatus}</p>
+            <button
+              onClick={limparMensagem}
+              disabled={processando}
+              className="text-[10px] text-muted-foreground hover:text-foreground shrink-0"
+            >
+              Remover
+            </button>
+          </div>
         )}
       </div>
     </div>

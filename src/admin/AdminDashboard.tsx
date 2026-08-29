@@ -24,6 +24,7 @@ export default function AdminDashboard() {
     atualizarStatusPedido,
     atualizarStatusPagamento,
     definirTempoEstimado,
+    atualizarMensagemStatus,
   } = useAdminOrders();
 
   const [filtro, setFiltro] = useState<StatusPedido | 'todos'>('todos');
@@ -60,6 +61,20 @@ export default function AdminDashboard() {
       await definirTempoEstimado(id, minutos);
     } catch {
       toast.error('Não foi possível definir o tempo estimado.');
+    }
+  };
+
+  const handleDefinirMensagem = async (
+    id: string,
+    mensagem: string | null
+  ) => {
+    try {
+      await atualizarMensagemStatus(id, mensagem);
+      toast.success(
+        mensagem ? 'Aviso enviado ao cliente.' : 'Aviso removido.'
+      );
+    } catch {
+      toast.error('Não foi possível atualizar o aviso.');
     }
   };
 
@@ -133,6 +148,7 @@ export default function AdminDashboard() {
             onAvancarStatus={handleAvancarStatus}
             onMarcarPago={handleMarcarPago}
             onDefinirTempo={handleDefinirTempo}
+            onDefinirMensagem={handleDefinirMensagem}
           />
         ))}
       </main>

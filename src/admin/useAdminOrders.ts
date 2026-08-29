@@ -40,6 +40,7 @@ interface LinhaPedido {
   cash_change_for: number | string | null;
   payment_status: StatusPagamento;
   order_status: StatusPedido;
+  status_message: string | null;
   subtotal: number | string;
   delivery_fee: number | string;
   total: number | string;
@@ -78,6 +79,7 @@ function converterLinha(linha: LinhaPedido): Pedido {
     },
     statusPagamento: linha.payment_status,
     statusPedido: linha.order_status,
+    mensagemStatus: linha.status_message ?? undefined,
     tempoEstimadoMinutos: linha.estimated_minutes ?? undefined,
     createdAt: new Date(linha.created_at).getTime(),
   };
@@ -171,6 +173,22 @@ export function useAdminOrders() {
     if (error) throw error;
   };
 
+  /*
+   * mensagem null/vazia limpa o aviso (o cliente
+   * deixa de ver a mensagem na tela dele).
+   */
+  const atualizarMensagemStatus = async (
+    id: string,
+    mensagem: string | null
+  ) => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status_message: mensagem?.trim() || null })
+      .eq('id', id);
+
+    if (error) throw error;
+  };
+
   return {
     pedidos,
     carregando,
@@ -178,6 +196,7 @@ export function useAdminOrders() {
     atualizarStatusPedido,
     atualizarStatusPagamento,
     definirTempoEstimado,
+    atualizarMensagemStatus,
     recarregar: carregar,
   };
 }

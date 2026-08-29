@@ -9,6 +9,7 @@ import {
   Package,
   Bike,
   PartyPopper,
+  Megaphone,
 } from 'lucide-react';
 
 interface Props {
@@ -111,6 +112,14 @@ export default function OrderTracking({
             #{pedido.numeroPedido}
           </p>
         </div>
+
+        {/* AVISO DO RESTAURANTE */}
+        {pedido.mensagemStatus && (
+          <div className="rounded-xl border border-primary/40 bg-primary/10 p-4 mb-6 flex items-start gap-3">
+            <Megaphone className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+            <p className="text-sm text-primary">{pedido.mensagemStatus}</p>
+          </div>
+        )}
 
         {/* AGUARDANDO PAGAMENTO PIX */}
         {aguardandoPagamento ? (

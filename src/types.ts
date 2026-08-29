@@ -253,6 +253,13 @@ export interface Pedido {
 
   statusPedido: StatusPedido;
 
+  /**
+   * Mensagem livre que o restaurante escreve no
+   * painel pra avisar o cliente sobre algo pontual
+   * (ex: alta demanda, atraso). Opcional.
+   */
+  mensagemStatus?: string;
+
   tempoEstimadoMinutos?: number;
 
   createdAt: number;

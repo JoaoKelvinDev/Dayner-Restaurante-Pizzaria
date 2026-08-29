@@ -43,6 +43,29 @@ function App() {
       .finally(() => setCarregandoPedido(false));
   }, []);
 
+  /*
+   * Enquanto o cliente está na tela de
+   * acompanhamento, reconsulta o pedido a cada
+   * 15s — assim ele vê mudanças de status e
+   * avisos do restaurante sem precisar dar F5.
+   *
+   * Para automaticamente quando o pedido é
+   * finalizado, pra não ficar consultando à toa.
+   */
+  useEffect(() => {
+    if (!pedidoFinalizado || pedidoFinalizado.statusPedido === 'finalizado') {
+      return;
+    }
+
+    const intervalo = setInterval(() => {
+      carregarPedidoAtivo().then((atualizado) => {
+        if (atualizado) setPedidoFinalizado(atualizado);
+      });
+    }, 15000);
+
+    return () => clearInterval(intervalo);
+  }, [pedidoFinalizado]);
+
   const adicionarItem = (item: ItemCarrinho) => {
     setItens((prev) => [...prev, item]);
   };

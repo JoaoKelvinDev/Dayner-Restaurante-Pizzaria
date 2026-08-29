@@ -20,6 +20,7 @@ interface PedidoBanco {
   cash_change_for: number | string | null;
   payment_status: Pedido['statusPagamento'];
   order_status: Pedido['statusPedido'];
+  status_message: string | null;
   subtotal: number | string;
   delivery_fee: number | string;
   total: number | string;
@@ -73,6 +74,7 @@ function converterPedido(registro: PedidoBanco): Pedido {
     },
     statusPagamento: registro.payment_status,
     statusPedido: registro.order_status,
+    mensagemStatus: registro.status_message ?? undefined,
     tempoEstimadoMinutos: registro.estimated_minutes ?? undefined,
     createdAt: new Date(registro.created_at).getTime(),
   };
